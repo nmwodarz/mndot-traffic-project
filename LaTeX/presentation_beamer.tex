@@ -1,0 +1,24 @@
+%! Author = wodar
+%! Date = 9/14/2021
+
+% This is the presentation version. It reads in the main file and produces the beamer PDF.
+
+% Preamble
+\documentclass{beamer}
+
+% Options for notes.
+\setbeameroption{hide notes} % Only slides
+%\setbeameroption{show only notes} % Only notes
+%\setbeameroption{show notes on second screen=right} % Both
+
+% Transparent shows the hidden bullets in lighter fashion. Invisible totally hides them. Invisible is the default.
+\setbeamercovered{transparent}
+%\setbeamercovered{invisible}
+
+% The toc doesn't fit at regular text size, so we shrink the text so that it fits.
+\setbeamerfont{section in toc}{size=\footnotesize}
+\setbeamerfont{subsection in toc}{size=\footnotesize}
+
+
+
+\input{presentation_main.tex}
