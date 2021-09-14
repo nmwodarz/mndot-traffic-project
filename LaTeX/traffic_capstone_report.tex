@@ -1,0 +1,39 @@
+%! Author = wodar
+%! Date = 9/11/2021
+
+% Preamble
+%\documentclass[11pt]{article}
+\documentclass[9pt,twocolumn,twoside, lineno]{jost-new}
+
+\templatetype{joststandard}
+
+\numberwithin{subsection}{section}
+
+% Packages
+%\usepackage{amsmath}
+
+
+
+% Document
+\title{MNDot Traffic Capstone Report}
+\shorttitle{MNDot Capstone Report}
+\author{Nathan Wodarz}
+\leadauthor{Wodarz}
+\begin{abstract}
+\textbf{Abstract}: The Minnesota Department of Transportation (MNDot) is...
+\end{abstract}
+
+\begin{document}
+\maketitle
+\thispagestyle{firststyle}
+\ifthenelse{\boolean{shortarticle}}{\ifthenelse{\boolean{singlecolumn}}{\abscontentformatted}{\abscontent}}{}
+\begin{nolinenumbers}
+\tableofcontents
+\end{nolinenumbers}
+\pagebreak
+
+\section{Introduction}
+Hello world!
+
+
+\end{document}
