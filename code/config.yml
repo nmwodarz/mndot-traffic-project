@@ -1,0 +1,16 @@
+logging:
+  # True if the logger should be turned on, False otherwise
+  is_active: True
+  # Can be a string or an integer. If a string, should give one of the levels for the logging module.
+  # Each of these constants has a numeric equivalent. These are CRITICAL (equivalent to 50), ERROR (40), WARNING (30),
+  # INFO (20), DEBUG (10), NOTSET (0)
+  # Any other string is interpreted as 0.
+  level: INFO
+  format: '%(levelname)s: (%(asctime)s) %(message)s'
+  datefmt: '%m/%d/%Y %H:%M:%S'
+
+data:
+  first_year: 2002
+  last_year: 2021
+  skip_txt_crawl: False
+  skip_csv_crawl: False
