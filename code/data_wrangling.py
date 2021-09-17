@@ -1,9 +1,12 @@
 import logging
+from io import BytesIO
+
 import requests
 import datetime as dt
 import pandas as pd
 import re
 from typing import Optional
+from bs4 import BeautifulSoup
 
 # Local File. Once data exists, we don't want to re-read it.
 # TODO: Put file name in config file.
@@ -260,9 +263,63 @@ def get_station_url_suffix(current_year: int) -> str:
     else:
         return TEXT_URL_NEW_SUFFIX
 
-
+# TODO: Badly in need of refactoring, since this is virtually identical to get_text_data except for False argument in
+#  get_years and changing get_text_data_year to get_csv_data_year
 def get_csv_data(conf: dict) -> Optional[pd.DataFrame]:
-    pass
+    urls = extract_csv_urls(conf)
+    # We were unable to read the earlier data locally, so we read it from the web.
+    # First, use the config to determine which years to read.
+    first_year, last_year = get_years(conf, False)
+    dfs = []
+    for current_year in range(first_year, last_year + 1):
+        logging.info(f'Obtaining year {current_year}')
+        try:
+            url = urls.get(current_year)
+        except:
+            logging.warning(f'No csv file found for {current_year}')
+            continue
+
+        year_df = get_csv_data_year(url)
+        if year_df is not None:
+            dfs.append(year_df)
+
+    if len(dfs) > 0:
+        df = pd.concat(dfs)
+        return df
+    else:
+        return None
+
+
+def extract_csv_urls(conf: dict) -> dict:
+    #TODO: This works, but totally needs to get cleaned up a bit.
+    #TODO: Magic!
+    url = 'https://www.dot.state.mn.us/traffic/data/reports-hrvol-atr.html'
+    reqs = requests.get(url)
+    soup = BeautifulSoup(reqs.text, 'html.parser')
+
+    first_year, last_year = get_years(conf, False)
+
+    urls = {}
+    hyperlinks = soup.find_all('a')
+
+    for current_year in range(first_year, last_year + 1):
+        year_as_str = str(current_year)
+        for link in hyperlinks:
+            link_str = link.string
+            if link_str is not None:
+                if year_as_str in link.string:
+                    # print(f'{link} // {link.string}')
+                    urls[current_year] = link.get('href')
+
+    return urls
+
+
+def get_csv_data_year(url: str) -> pd.DataFrame:
+    # Allow redirects
+    response = requests.get(url, allow_redirects=True)
+    df = pd.read_csv(BytesIO(response.content))
+
+    return df
 
 
 def get_years(conf: dict, is_before_split: bool) -> (int, int):
@@ -298,40 +355,4 @@ def get_default_years(is_before_split: bool) -> (int, int):
         current_year = todays_date.year
         return SPLIT_YEAR, current_year
 
-# text_file_name = 'Data/text_data.pkl'
-# try:
-#     text_data = pd.read_pickle(text_file_name)
-# except IOError:
-#     logging.warning(f'Error reading {text_file_name}')
-#
-#     df_list = []
-#     year_list = range(last_year, first_year - 1, -1)
-#     it_list = list(itertools.product(*[archived_station_list, year_list]))
-#
-#     for station_no, year in tqdm(it_list):
-#         url = url_stem + str(year) + '/' + 'ATR' + str(station_no).rjust(3, "0") + file_suffix[year]
-#         redo = True
-#
-#         while redo:
-#             try:
-#                 response = requests.get(url)
-#                 if response.status_code == 200:
-#                     df_list.append(process_response(station_no, response))
-#                 else:
-#                     #                     logging.warning(f'Year: {year}, station_id: {station_no} gives status code {response.status_code}')
-#                     pass
-#                 redo = False
-#             except requests.exceptions.RequestException as e:
-#                 print(f'Error {e} reading page {url}')
-#             except Exception:
-#                 print(f'Unexpected Error')
-#                 raise
-#
-#     text_data = pd.concat(df_list)
-#
-#     # Station 53 was duplicated in 2007 (Station 51 information is erroneous).
-#     text_data_dups = text_data.duplicated(keep='first')
-#     text_data[text_data_dups]
-#     text_data = text_data[~text_data_dups]
-#
-#     text_data.to_pickle(text_file_name)
+
