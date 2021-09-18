@@ -1,6 +1,5 @@
 import logging
 from io import BytesIO
-
 import requests
 import datetime as dt
 import pandas as pd
@@ -263,6 +262,7 @@ def get_station_url_suffix(current_year: int) -> str:
     else:
         return TEXT_URL_NEW_SUFFIX
 
+
 # TODO: Badly in need of refactoring, since this is virtually identical to get_text_data except for False argument in
 #  get_years and changing get_text_data_year to get_csv_data_year
 def get_csv_data(conf: dict) -> Optional[pd.DataFrame]:
@@ -275,7 +275,7 @@ def get_csv_data(conf: dict) -> Optional[pd.DataFrame]:
         logging.info(f'Obtaining year {current_year}')
         try:
             url = urls.get(current_year)
-        except:
+        except (Exception,):
             logging.warning(f'No csv file found for {current_year}')
             continue
 
@@ -291,8 +291,8 @@ def get_csv_data(conf: dict) -> Optional[pd.DataFrame]:
 
 
 def extract_csv_urls(conf: dict) -> dict:
-    #TODO: This works, but totally needs to get cleaned up a bit.
-    #TODO: Magic!
+    # TODO: This works, but totally needs to get cleaned up a bit.
+    # TODO: Magic!
     url = 'https://www.dot.state.mn.us/traffic/data/reports-hrvol-atr.html'
     reqs = requests.get(url)
     soup = BeautifulSoup(reqs.text, 'html.parser')
@@ -354,5 +354,3 @@ def get_default_years(is_before_split: bool) -> (int, int):
         todays_date = dt.date.today()
         current_year = todays_date.year
         return SPLIT_YEAR, current_year
-
-
