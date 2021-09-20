@@ -1,5 +1,10 @@
 %! Author = wodar
 %! Date = 9/14/2021
+\mode<presentation>
+{
+% Keep same options for all styles. Presentation includes the default (beamer) mode and the handout mode.
+	\usetheme[titlestyle=style2, sectionstyle=style2]{trigon}
+}
 
 \mode<beamer>{
     % Include outline before each subsection
@@ -11,12 +16,370 @@
     }
 
     % The toc may not fit at regular text size, so we can shrink the text so that it fits.
-%    \setbeamerfont{section in toc}{size=\footnotesize}
-%    \setbeamerfont{subsection in toc}{size=\footnotesize}
+    \setbeamerfont{section in toc}{size=\footnotesize}
+    \setbeamerfont{subsection in toc}{size=\footnotesize}
 }
 % Document
-\begin{document}
-Hello, world!
+\title{Minnesota Department of Transportation Traffic Project}
+\author{Nathan Wodarz}
+\date{September 2021}
 
+\begin{document}
+%==============================================
+%==============================================
+% Introduction
+%==============================================
+%==============================================
+
+\titleframe
+%==============================================
+%==============================================
+\section{Problem Statement}
+%==============================================
+%==============================================
+\subsection{Background}
+\begin{frame}{\insertsectionhead}
+  \framesubtitle{\insertsubsectionhead: MnDOT}
+	\begin{itemize}
+		\item<+-> \alert{Minnesota Department of Transportation} (MnDOT)
+		\item<+-> Minnesota ranks 4th of 50
+		\begin{itemize}
+			\item<+-> Centerline mileage
+			\item<+-> Lane mileage
+		\end{itemize}
+		\item<+-> Road volume
+		\begin{itemize}
+			\item<+-> Automatic Traffic Recorders (ATR) and Weigh-in-Motion (WIM)
+			\item<+-> Over 155 total
+			\begin{itemize}
+				\item<+-> 75+ in Minneapolis-St. Paul metro area (7 counties)
+				\item<+-> 80+ outstate (80 counties)
+			\end{itemize}
+			\item<+-> Available 2002-present
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\subsection{Motivation}
+\begin{frame}{\insertsectionhead}
+  \framesubtitle{\insertsubsectionhead}
+	\begin{itemize}
+		\item<+-> Interest in geography/road network
+		\item<+-> Interest in time series
+		\item<+-> Availability of data
+	\end{itemize}
+\end{frame}
+
+\subsection{Problem Statement}
+\begin{frame}{\insertsectionhead}
+  \framesubtitle{\insertsubsectionhead}
+	\begin{itemize}
+		\item<+-> Fit model to existing data
+		\item<+-> Predict future traffic levels
+	\end{itemize}
+\end{frame}
+
+%==============================================
+%==============================================
+\section{Data Wrangling}
+%==============================================
+%==============================================
+
+%==============================================
+\subsection{Raw Data}
+%==============================================
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: MnDOT Data Products}
+	\begin{itemize}
+		\item<+-> MnDOT Data Products
+		\begin{itemize}
+			\item<+-> .csv format (2017-)
+			\item<+-> .txt format (2002-2017)
+		\end{itemize}
+		\item<+-> Hourly values
+		\begin{itemize}
+			\item<+-> One row per station per direction per day
+			\item<+-> More recently, also per lane
+			\item<+-> 24 hourly totals per row
+			\item<+-> Some values are estimated
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: ATR Stations}
+	\begin{itemize}
+		\item<+-> Location
+		\begin{itemize}
+			\item<+-> Rural vs Urban
+		\end{itemize}
+		\item<+-> Functional Class
+		\begin{itemize}
+			\item<+-> Interstates
+			\item<+-> Principal Arterial - Other Freeways and Expressways
+			\item<+-> Principal Arterial - Other
+			\item<+-> Minor Arterial
+			\item<+-> Major Collector
+			\item<+-> Local
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+%==============================================
+\section{Data Cleaning}
+%==============================================
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead}
+	\begin{itemize}
+		\item<+-> Remove duplication
+		\item<+-> Remove inactive stations
+		\item<+-> Remove stations with no data in last year
+		\item<+-> Remove stations missing more than 80\% of all months
+		\begin{itemize}
+			\item<+-> January 2002-July 2021
+			\item<+-> Missing: no entries for month
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+%==============================================
+\section{Transformation}
+%==============================================
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: MADT}
+	\begin{itemize}
+		\item<+-> Traffic counts given by \alert{Annual Average Daily Traffic} (AADT)
+		\begin{itemize}
+			\item<+-> Weighted mean of \alert{Monthly Average Daily Traffic} (MADT)
+			\item<+-> Weights: number of days in month
+		\end{itemize}
+\begin{overlayarea}{\textwidth}{0.3\textheight}
+		\only<+->{
+		\[
+			MADT_m = \frac{\sum_{j=1}^7 w_{jm} \sum_{h=1}^{24}\left[\frac{1}{n_{hjm}}\sum_{i=1}^{n_{hjm}}VOL_{ihjm}\right]}
+			{\sum_{j=1}^7 w_{jm}}
+		\]
+		}
+\end{overlayarea}
+
+		\begin{itemize}
+			\item<+-> $m$: month; $j$: day of week; $h$: hour of day
+			\item<+-> $w_{jm}$: ocurrances of $j$th day of week in month $m$
+			\item<+-> $n_{hjm}$: non-missing values for $h$th hour of $j$th day of week in month $m$
+			\item<+-> $VOL_{ihjm}$: $i$th data point for $h$th hour of $j$th day of week in month $m$
+			\item<+-> $MADT_m$: monthly average daily traffic for month $m$
+		\end{itemize} 
+	\end{itemize}
+\end{frame}
+
+%==============================================
+%==============================================
+\section{Exploratory Data Analysis}
+%==============================================
+%==============================================
+
+%==============================================
+\subsection{Data Distribution}
+%==============================================
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Interstates}
+		\frame{\includegraphics[height=0.8\textheight]{figures/hist_interstate.png}}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Principal Arterial - Other Freeways}
+		\frame{\includegraphics[height=0.8\textheight]{figures/hist_principal_arterial_other_freeways_and_expressways.png}}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Principal Arterial - Other}
+		\frame{\includegraphics[height=0.8\textheight]{figures/hist_principal_arterial_other_stations_27_210_.png}}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Principal Arterial - Other}
+		\frame{\includegraphics[height=0.8\textheight]{figures/hist_principal_arterial_other_stations_211_420_.png}}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Minor Arterial}
+		\frame{\includegraphics[height=0.8\textheight]{figures/hist_minor_arterial.png}}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Major Collector}
+		\frame{\includegraphics[height=0.8\textheight]{figures/hist_major_collector.png}}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Local}
+		\frame{\includegraphics[height=0.8\textheight]{figures/hist_interstate.png}}
+\end{frame}
+
+	%==============================================
+\subsection{Autocorrelation}
+%==============================================
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: ACF}
+		\frame{\includegraphics[width=\textwidth]{figures/autocorrelations_a1.png}}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Differenced ACF}
+		\frame{\includegraphics[width=\textwidth]{figures/autocorrelations_diff_a1.png}}
+\end{frame}
+
+	%==============================================
+%==============================================
+\section{Imputation}
+%==============================================
+%=============================================
+
+%==============================================
+\subsection{Methods}
+%==============================================
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead}
+	\begin{itemize}
+		\item<+-> Metric: Mean Square Error
+		\item<+-> Methods
+		\begin{itemize}
+			\item<+-> Mean
+			\item<+-> Seasonal Mean
+			\item<+-> CDRec (Centroid Decomposition)
+			\item<+-> Seasonal CDRec
+			\item<+-> Prophet
+			\item<+-> Prophet (Logistic Floor)
+		\end{itemize}
+		\item<+-> All but CDRec were column-wise
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Mean}
+		\frame{\includegraphics[width=\textwidth]{figures/impute_mean.png}}
+\end{frame}
+
+	\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Seasonal Mean}
+		\frame{\includegraphics[width=\textwidth]{figures/impute_seasonal_mean.png}}
+\end{frame}
+
+		\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: CDRec}
+		\frame{\includegraphics[width=\textwidth]{figures/impute_cdrec.png}}
+\end{frame}
+
+			\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Seasonal CDRec}
+		\frame{\includegraphics[width=\textwidth]{figures/impute_seasonal_cdrec.png}}
+\end{frame}
+
+				\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Prophet}
+		\frame{\includegraphics[width=\textwidth]{figures/impute_prophet.png}}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Logistic Prophet}
+		\frame{\includegraphics[width=\textwidth]{figures/impute_prophet_logistic.png}}
+\end{frame}
+
+%==============================================
+\subsection{Results}
+%==============================================
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead}
+		\frame{\includegraphics[width=\textwidth]{figures/impute_mse.png}}
+\end{frame}
+
+	%==============================================
+%==============================================
+\section{Modeling}
+%==============================================
+%=============================================
+
+%==============================================
+\subsection{Methods}
+%==============================================
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead}
+	\begin{itemize}
+		\item<+-> Metric: Mean Square Error
+		\item<+-> Methods
+		\begin{itemize}
+			\item<+-> Baseline: Lag 1M / 12M
+			\item<+-> Prophet
+			\item<+-> Exponential Smoothing
+			\item<+-> SARIMA
+		\end{itemize}
+		\item<+-> All column-wise
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: 1 Month Lag}
+	\centering
+		\frame{\includegraphics[height=0.8\textheight]{figures/model_baseline_1M_zoomed.png}}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: 12 Month Lag}
+		\centering
+		\frame{\includegraphics[height=0.8\textheight]{figures/model_baseline_12M_zoomed.png}}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Prophet}
+		\centering
+		\frame{\includegraphics[height=0.8\textheight]{figures/model_prophet_zoomed.png}}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: Exponential Smoothing}
+			\centering
+	\frame{\includegraphics[height=0.8\textheight]{figures/model_holt_winters_model_zoomed.png}}
+\end{frame}
+
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead: SARIMA}
+		\centering
+		\frame{\includegraphics[height=0.8\textheight]{figures/model_sarima_zoomed.png}}
+\end{frame}
+
+%==============================================
+\subsection{Results}
+%==============================================
+\begin{frame}{\insertsectionhead}
+	\framesubtitle{\insertsubsectionhead}
+		\frame{\includegraphics[width=\textwidth]{figures/model_mean_squared_error.png}}
+\end{frame}
+
+		%==============================================
+%==============================================
+\section{Future Directions}
+%==============================================
+%=============================================
+\begin{frame}{\insertsectionhead}
+\begin{itemize}
+	\item<+-> Adjust for pandemic
+	\item<+-> Deal with Interrelations
+	\begin{itemize}
+		\item<+-> Deep Learning
+		\item<+-> STARIMA (Space-Time Autoregressive Integrated Moving Average)
+	\end{itemize}
+\end{itemize}
+\end{frame}
 
 \end{document}
+
+%\item<+-> Interstates
+%			\item<+-> Principal Arterial - Other Freeways and Expressways
+%			\item<+-> Principal Arterial - Other
+%			\item<+-> Minor Arterial
+%			\item<+-> Major Collector
+%			\item<+-> Local
