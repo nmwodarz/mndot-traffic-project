@@ -1,0 +1,11 @@
+Features:
+68 time series, each from a separate ATR
+235 timestamps, January 2002-July 2021
+
+Model Metrics:
+MSE     MAE     Model
+0.067   0.186   Baseline (1M)
+0.031   0.091   Baseline (12M)
+0.034   0.103   Prophet
+0.040   0.106   Exponential Smoothing (Holt-Winters)
+0.065   0.185   SARIMA
